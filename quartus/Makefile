@@ -96,3 +96,6 @@ asm.chg:
 
 program: $(PROJECT).sof
 	quartus_pgm --no_banner --mode=jtag -o "P;$(PROJECT).sof"
+
+program-pof: $(PROJECT).pof
+        quartus_pgm --no_banner --mode=jtag -o "BVP;$(PROJECT).pof"
