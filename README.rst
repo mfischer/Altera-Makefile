@@ -30,6 +30,7 @@ should be:
 * PROJECT (your projects name?)
 * TOP_LEVEL_ENTITY (your projects top level entity)
 * FAMILY, PART and BOARDFILE (for pin assignments, and part selection)
+* QUARTUS_PATH (path to the bin/ directory of the desired quartus version)
 
 Now you can create and build your project by::
 
@@ -37,7 +38,7 @@ Now you can create and build your project by::
  
 In order to program the FPGA device use::
 
-  user$: make program
+  user$: make -C quartus program
 
 Known problems
 ~~~~~~~~~~~~~~~
