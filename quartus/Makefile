@@ -44,6 +44,10 @@ smart: smart.log
 # Executable Configuration
 ###################################################################
 
+ifeq ($(shell uname -m),x86_64)
+QUARTUS_ARGS = --64bit
+endif
+
 MAP_ARGS = $(QUARTUS_ARGS) --read_settings_files=on $(addprefix --source=,$(SRCS))
 FIT_ARGS = $(QUARTUS_ARGS) --part=$(PART) --read_settings_files=on
 ASM_ARGS = $(QUARTUS_ARGS)
