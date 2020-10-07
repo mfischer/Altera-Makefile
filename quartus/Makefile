@@ -44,11 +44,12 @@ smart: smart.log
 # Executable Configuration
 ###################################################################
 
-MAP_ARGS = --read_settings_files=on $(addprefix --source=,$(SRCS))
-
-FIT_ARGS = --part=$(PART) --read_settings_files=on
-ASM_ARGS =
-STA_ARGS =
+MAP_ARGS = $(QUARTUS_ARGS) --read_settings_files=on $(addprefix --source=,$(SRCS))
+FIT_ARGS = $(QUARTUS_ARGS) --part=$(PART) --read_settings_files=on
+ASM_ARGS = $(QUARTUS_ARGS)
+STA_ARGS = $(QUARTUS_ARGS)
+SH_ARGS  = $(QUARTUS_ARGS)
+PGM_ARGS = $(QUARTUS_ARGS) --no_banner --mode=jtag 
 
 ###################################################################
 # Target implementations
@@ -72,14 +73,14 @@ $(PROJECT).sta.rpt: sta.chg $(PROJECT).fit.rpt
 	quartus_sta $(STA_ARGS) $(PROJECT) 
 
 smart.log: $(ASSIGNMENT_FILES)
-	quartus_sh --determine_smart_action $(PROJECT) > smart.log
+	quartus_sh $(SH_ARGS) --determine_smart_action $(PROJECT) > smart.log
 
 ###################################################################
 # Project initialization
 ###################################################################
 
 $(ASSIGNMENT_FILES):
-	quartus_sh --prepare -f $(FAMILY) -t $(TOP_LEVEL_ENTITY) $(PROJECT)
+	quartus_sh $(SH_ARGS) --prepare -f $(FAMILY) -t $(TOP_LEVEL_ENTITY) $(PROJECT)
 	-cat $(BOARDFILE) >> $(PROJECT).qsf
 map.chg:
 	$(STAMP) map.chg
@@ -95,7 +96,7 @@ asm.chg:
 ###################################################################
 
 program: $(PROJECT).sof
-	quartus_pgm --no_banner --mode=jtag -o "P;$(PROJECT).sof"
+	quartus_pgm $(PGM_ARGS) -o "P;$(PROJECT).sof"
 
 program-pof: $(PROJECT).pof
-        quartus_pgm --no_banner --mode=jtag -o "BVP;$(PROJECT).pof"
+	quartus_pgm $(PGM_ARGS) -o "BVP;$(PROJECT).pof"
