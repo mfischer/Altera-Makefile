@@ -35,7 +35,7 @@ SRCS = $(wildcard ../fpga/*.sv) \
 all: smart.log $(PROJECT).asm.rpt $(PROJECT).sta.rpt 
 
 clean:
-	$(RM) *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof db incremental_db *.summary *.smsg *.jdi $(ASSIGNMENT_FILES)
+	$(RM) -rf *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof db incremental_db *.summary *.smsg *.jdi $(ASSIGNMENT_FILES)
 
 map: smart.log $(PROJECT).map.rpt
 fit: smart.log $(PROJECT).fit.rpt
