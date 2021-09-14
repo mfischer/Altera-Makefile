@@ -18,8 +18,11 @@ BOARDFILE = DE2Pins
 
 ###################################################################
 # Setup your sources here
-SRCS = ../fpga/top_level.v \
-       ../fpga/nios.qsys
+SRCS = $(wildcard ../fpga/*.sv) \
+  $(wildcard ../fpga/*.v) \
+  $(wildcard ../fpga/*.vhdl) \
+  $(wildcard ../fpga/*.vhd) \
+  $(wildcard ../fpga/*.qsys)
 
 ###################################################################
 # Main Targets
