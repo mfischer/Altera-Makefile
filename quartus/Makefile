@@ -18,8 +18,11 @@ BOARDFILE = DE2Pins
 
 ###################################################################
 # Setup your sources here
-SRCS = ../fpga/top_level.v \
-       ../fpga/nios.qsys
+SRCS = $(wildcard ../fpga/*.sv) \
+  $(wildcard ../fpga/*.v) \
+  $(wildcard ../fpga/*.vhdl) \
+  $(wildcard ../fpga/*.vhd) \
+  $(wildcard ../fpga/*.qsys)
 
 ###################################################################
 # Main Targets
@@ -32,7 +35,7 @@ SRCS = ../fpga/top_level.v \
 all: smart.log $(PROJECT).asm.rpt $(PROJECT).sta.rpt 
 
 clean:
-	rm -rf *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof db incremental_db
+	$(RM) -rf *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof db incremental_db *.summary *.smsg *.jdi $(ASSIGNMENT_FILES)
 
 map: smart.log $(PROJECT).map.rpt
 fit: smart.log $(PROJECT).fit.rpt
@@ -42,13 +45,31 @@ smart: smart.log
 
 ###################################################################
 # Executable Configuration
+#
+# QUARTUS_PATH: If empty then system path is searched.
+#               If set then requires trailling slash.
+#               Commented out so it may be set from environment.
 ###################################################################
 
-MAP_ARGS = --read_settings_files=on $(addprefix --source=,$(SRCS))
+# QUARTUS_PATH = /opt/altera/13.0sp1/quartus/bin/
 
-FIT_ARGS = --part=$(PART) --read_settings_files=on
-ASM_ARGS =
-STA_ARGS =
+QUARTUS_MAP  = $(QUARTUS_PATH)quartus_map
+QUARTUS_FIT  = $(QUARTUS_PATH)quartus_fit
+QUARTUS_ASM  = $(QUARTUS_PATH)quartus_asm
+QUARTUS_STA  = $(QUARTUS_PATH)quartus_sta
+QUARTUS_SH   = $(QUARTUS_PATH)quartus_sh
+QUARTUS_PGM  = $(QUARTUS_PATH)quartus_pgm
+
+ifeq ($(shell uname -m),x86_64)
+QUARTUS_ARGS = --64bit
+endif
+
+MAP_ARGS = $(QUARTUS_ARGS) --read_settings_files=on $(addprefix --source=,$(SRCS))
+FIT_ARGS = $(QUARTUS_ARGS) --part=$(PART) --read_settings_files=on
+ASM_ARGS = $(QUARTUS_ARGS)
+STA_ARGS = $(QUARTUS_ARGS)
+SH_ARGS  = $(QUARTUS_ARGS)
+PGM_ARGS = $(QUARTUS_ARGS) --no_banner --mode=jtag 
 
 ###################################################################
 # Target implementations
@@ -57,29 +78,29 @@ STA_ARGS =
 STAMP = echo done >
 
 $(PROJECT).map.rpt: map.chg $(SOURCE_FILES) 
-	quartus_map $(MAP_ARGS) $(PROJECT)
+	$(QUARTUS_MAP) $(MAP_ARGS) $(PROJECT)
 	$(STAMP) fit.chg
 
 $(PROJECT).fit.rpt: fit.chg $(PROJECT).map.rpt
-	quartus_fit $(FIT_ARGS) $(PROJECT)
+	$(QUARTUS_FIT) $(FIT_ARGS) $(PROJECT)
 	$(STAMP) asm.chg
 	$(STAMP) sta.chg
 
 $(PROJECT).asm.rpt: asm.chg $(PROJECT).fit.rpt
-	quartus_asm $(ASM_ARGS) $(PROJECT)
+	$(QUARTUS_ASM) $(ASM_ARGS) $(PROJECT)
 
 $(PROJECT).sta.rpt: sta.chg $(PROJECT).fit.rpt
-	quartus_sta $(STA_ARGS) $(PROJECT) 
+	$(QUARTUS_STA) $(STA_ARGS) $(PROJECT) 
 
 smart.log: $(ASSIGNMENT_FILES)
-	quartus_sh --determine_smart_action $(PROJECT) > smart.log
+	$(QUARTUS_SH) $(SH_ARGS) --determine_smart_action $(PROJECT) > smart.log
 
 ###################################################################
 # Project initialization
 ###################################################################
 
 $(ASSIGNMENT_FILES):
-	quartus_sh --prepare -f $(FAMILY) -t $(TOP_LEVEL_ENTITY) $(PROJECT)
+	$(QUARTUS_SH) $(SH_ARGS) --prepare -f $(FAMILY) -t $(TOP_LEVEL_ENTITY) $(PROJECT)
 	-cat $(BOARDFILE) >> $(PROJECT).qsf
 map.chg:
 	$(STAMP) map.chg
@@ -95,7 +116,7 @@ asm.chg:
 ###################################################################
 
 program: $(PROJECT).sof
-	quartus_pgm --no_banner --mode=jtag -o "P;$(PROJECT).sof"
+	$(QUARTUS_PGM) $(PGM_ARGS) -o "P;$(PROJECT).sof"
 
 program-pof: $(PROJECT).pof
-        quartus_pgm --no_banner --mode=jtag -o "BVP;$(PROJECT).pof"
+	$(QUARTUS_PGM) $(PGM_ARGS) -o "BVP;$(PROJECT).pof"
